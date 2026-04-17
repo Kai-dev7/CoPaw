@@ -12,6 +12,35 @@ import click
 import questionary
 
 
+def resolve_agent_id(agent_id: Optional[str]) -> str:
+    """Return *agent_id* when explicitly provided; fall back to the
+    ``active_agent`` from ``config.json``, then to ``"default"``.
+
+    All ``copaw <cmd> --agent-id`` options use ``default=None`` so that
+    an omitted flag reaches this function rather than silently targeting
+    the hard-coded string ``"default"``, which breaks for users whose
+    active agent has a different ID.
+
+    Args:
+        agent_id: Value supplied on the command line, or ``None`` when
+                  the flag was not passed.
+
+    Returns:
+        A non-empty agent ID string.
+    """
+    if agent_id:
+        return agent_id
+    try:
+        from ..config import load_config
+
+        active = load_config().agents.active_agent
+        if active:
+            return active
+    except Exception:
+        pass
+    return "default"
+
+
 def prompt_confirm(question: str, *, default: bool = False) -> bool:
     """Prompt the user for a yes/no answer.
     Args:

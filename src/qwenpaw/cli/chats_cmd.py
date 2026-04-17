@@ -9,6 +9,7 @@ from typing import Optional
 import click
 
 from .http import client, print_json, resolve_base_url
+from .utils import resolve_agent_id
 from ..app.channels.schema import DEFAULT_CHANNEL
 
 
@@ -44,8 +45,8 @@ def chats_group() -> None:
 )
 @click.option(
     "--agent-id",
-    default="default",
-    help="Agent ID (defaults to 'default')",
+    default=None,
+    help="Agent ID. Defaults to the active agent in config.",
 )
 @click.pass_context
 def list_chats(
@@ -53,7 +54,7 @@ def list_chats(
     user_id: Optional[str],
     channel: Optional[str],
     base_url: Optional[str],
-    agent_id: str,
+    agent_id: Optional[str],
 ) -> None:
     """List all chats, optionally filtered by user_id or channel.
 
@@ -71,7 +72,7 @@ def list_chats(
     if channel:
         params["channel"] = channel
     with client(base_url) as c:
-        headers = {"X-Agent-Id": agent_id}
+        headers = {"X-Agent-Id": resolve_agent_id(agent_id)}
         r = c.get("/chats", params=params, headers=headers)
         r.raise_for_status()
         print_json(r.json())
@@ -82,15 +83,15 @@ def list_chats(
 @click.option("--base-url", default=None, help="Override API base URL")
 @click.option(
     "--agent-id",
-    default="default",
-    help="Agent ID (defaults to 'default')",
+    default=None,
+    help="Agent ID. Defaults to the active agent in config.",
 )
 @click.pass_context
 def get_chat(
     ctx: click.Context,
     chat_id: str,
     base_url: Optional[str],
-    agent_id: str,
+    agent_id: Optional[str],
 ) -> None:
     """View details of a specific chat (including message history).
 
@@ -103,7 +104,7 @@ def get_chat(
     """
     base_url = resolve_base_url(ctx, base_url)
     with client(base_url) as c:
-        headers = {"X-Agent-Id": agent_id}
+        headers = {"X-Agent-Id": resolve_agent_id(agent_id)}
         r = c.get(f"/chats/{chat_id}", headers=headers)
         if r.status_code == 404:
             raise click.ClickException(f"chat not found: {chat_id}")
@@ -146,8 +147,8 @@ def get_chat(
 @click.option("--base-url", default=None, help="Override API base URL")
 @click.option(
     "--agent-id",
-    default="default",
-    help="Agent ID (defaults to 'default')",
+    default=None,
+    help="Agent ID. Defaults to the active agent in config.",
 )
 @click.pass_context
 def create_chat(
@@ -158,7 +159,7 @@ def create_chat(
     user_id: Optional[str],
     channel: str,
     base_url: Optional[str],
-    agent_id: str,
+    agent_id: Optional[str],
 ) -> None:
     """Create a new chat.
 
@@ -196,7 +197,7 @@ def create_chat(
             "meta": {},
         }
     with client(base_url) as c:
-        headers = {"X-Agent-Id": agent_id}
+        headers = {"X-Agent-Id": resolve_agent_id(agent_id)}
         r = c.post("/chats", json=payload, headers=headers)
         r.raise_for_status()
         print_json(r.json())
@@ -208,8 +209,8 @@ def create_chat(
 @click.option("--base-url", default=None, help="Override API base URL")
 @click.option(
     "--agent-id",
-    default="default",
-    help="Agent ID (defaults to 'default')",
+    default=None,
+    help="Agent ID. Defaults to the active agent in config.",
 )
 @click.pass_context
 def update_chat(
@@ -217,7 +218,7 @@ def update_chat(
     chat_id: str,
     name: str,
     base_url: Optional[str],
-    agent_id: str,
+    agent_id: Optional[str],
 ) -> None:
     """Update chat name.
 
@@ -229,7 +230,7 @@ def update_chat(
       qwenpaw chats update <chat_id> --name "Renamed Chat"
     """
     base_url = resolve_base_url(ctx, base_url)
-    headers = {"X-Agent-Id": agent_id}
+    headers = {"X-Agent-Id": resolve_agent_id(agent_id)}
     payload = {"name": name}
     with client(base_url) as c:
         r = c.put(f"/chats/{chat_id}", json=payload, headers=headers)
@@ -244,15 +245,15 @@ def update_chat(
 @click.option("--base-url", default=None, help="Override API base URL")
 @click.option(
     "--agent-id",
-    default="default",
-    help="Agent ID (defaults to 'default')",
+    default=None,
+    help="Agent ID. Defaults to the active agent in config.",
 )
 @click.pass_context
 def delete_chat(
     ctx: click.Context,
     chat_id: str,
     base_url: Optional[str],
-    agent_id: str,
+    agent_id: Optional[str],
 ) -> None:
     """Delete a specific chat.
 
@@ -267,7 +268,7 @@ def delete_chat(
     """
     base_url = resolve_base_url(ctx, base_url)
     with client(base_url) as c:
-        headers = {"X-Agent-Id": agent_id}
+        headers = {"X-Agent-Id": resolve_agent_id(agent_id)}
         r = c.delete(f"/chats/{chat_id}", headers=headers)
         if r.status_code == 404:
             raise click.ClickException(f"chat not found: {chat_id}")

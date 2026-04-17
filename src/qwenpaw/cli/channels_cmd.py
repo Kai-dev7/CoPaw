@@ -29,7 +29,7 @@ from ..config.config import (
     load_agent_config,
     save_agent_config,
 )
-from .utils import prompt_confirm, prompt_path, prompt_select
+from .utils import prompt_confirm, prompt_path, prompt_select, resolve_agent_id
 from .http import client, print_json, resolve_base_url
 from ..config import get_available_channels
 from ..constant import CUSTOM_CHANNELS_DIR
@@ -850,11 +850,12 @@ def _channel_enabled(ch) -> bool:
 @channels_group.command("list")
 @click.option(
     "--agent-id",
-    default="default",
-    help="Agent ID (defaults to 'default')",
+    default=None,
+    help="Agent ID. Defaults to the active agent in config.",
 )
-def list_cmd(agent_id: str) -> None:
+def list_cmd(agent_id: Optional[str]) -> None:
     """Show current channel configuration."""
+    agent_id = resolve_agent_id(agent_id)
     try:
         agent_config = load_agent_config(agent_id)
         click.echo(f"Channels for agent: {agent_id}\n")
@@ -1093,11 +1094,12 @@ def remove_cmd(key: str, keep_config: bool) -> None:
 @channels_group.command("config")
 @click.option(
     "--agent-id",
-    default="default",
-    help="Agent ID (defaults to 'default')",
+    default=None,
+    help="Agent ID. Defaults to the active agent in config.",
 )
-def configure_cmd(agent_id: str) -> None:
+def configure_cmd(agent_id: Optional[str]) -> None:
     """Interactively configure channels."""
+    agent_id = resolve_agent_id(agent_id)
     try:
         agent_config = load_agent_config(agent_id)
         click.echo(f"Configuring channels for agent: {agent_id}\n")

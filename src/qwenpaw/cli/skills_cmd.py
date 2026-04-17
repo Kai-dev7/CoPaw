@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Optional
 
 import click
 
@@ -15,7 +16,7 @@ from ..agents.skills_manager import (
 )
 from ..constant import WORKING_DIR
 from ..config import load_config
-from .utils import prompt_checkbox, prompt_confirm
+from .utils import prompt_checkbox, prompt_confirm, resolve_agent_id
 
 
 def _get_agent_workspace(agent_id: str) -> Path:
@@ -218,11 +219,12 @@ def skills_group() -> None:
 @skills_group.command("list")
 @click.option(
     "--agent-id",
-    default="default",
-    help="Agent ID (defaults to 'default')",
+    default=None,
+    help="Agent ID. Defaults to the active agent in config.",
 )
-def list_cmd(agent_id: str) -> None:
+def list_cmd(agent_id: Optional[str]) -> None:
     """Show all skills and their enabled/disabled status."""
+    agent_id = resolve_agent_id(agent_id)
     working_dir = _get_agent_workspace(agent_id)
 
     click.echo(f"Skills for agent: {agent_id}\n")
@@ -266,9 +268,9 @@ def list_cmd(agent_id: str) -> None:
 @skills_group.command("config")
 @click.option(
     "--agent-id",
-    default="default",
-    help="Agent ID (defaults to 'default')",
+    default=None,
+    help="Agent ID. Defaults to the active agent in config.",
 )
-def configure_cmd(agent_id: str) -> None:
+def configure_cmd(agent_id: Optional[str]) -> None:
     """Interactively configure skills."""
-    configure_skills_interactive(agent_id=agent_id)
+    configure_skills_interactive(agent_id=resolve_agent_id(agent_id))

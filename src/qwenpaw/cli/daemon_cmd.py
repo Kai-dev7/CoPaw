@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import asyncio
 from pathlib import Path
+from typing import Optional
 
 import click
 
@@ -20,6 +21,7 @@ from ..app.runner.daemon_commands import (
 )
 from ..constant import WORKING_DIR
 from ..config import load_config
+from .utils import resolve_agent_id
 
 
 def _get_agent_workspace(agent_id: str) -> Path:
@@ -53,11 +55,12 @@ def daemon_group() -> None:
 @daemon_group.command("status")
 @click.option(
     "--agent-id",
-    default="default",
-    help="Agent ID (defaults to 'default')",
+    default=None,
+    help="Agent ID. Defaults to the active agent in config.",
 )
-def status_cmd(agent_id: str) -> None:
+def status_cmd(agent_id: Optional[str]) -> None:
     """Show daemon status (config, working dir, memory manager)."""
+    agent_id = resolve_agent_id(agent_id)
     ctx = _context(agent_id)
     click.echo(f"Agent: {agent_id}\n")
     click.echo(run_daemon_status(ctx))
@@ -66,11 +69,12 @@ def status_cmd(agent_id: str) -> None:
 @daemon_group.command("restart")
 @click.option(
     "--agent-id",
-    default="default",
-    help="Agent ID (defaults to 'default')",
+    default=None,
+    help="Agent ID. Defaults to the active agent in config.",
 )
-def restart_cmd(agent_id: str) -> None:
+def restart_cmd(agent_id: Optional[str]) -> None:
     """Print restart instructions (CLI has no process to restart)."""
+    agent_id = resolve_agent_id(agent_id)
     ctx = _context(agent_id)
     click.echo(f"Agent: {agent_id}\n")
     click.echo(asyncio.run(run_daemon_restart(ctx)))
@@ -79,11 +83,12 @@ def restart_cmd(agent_id: str) -> None:
 @daemon_group.command("reload-config")
 @click.option(
     "--agent-id",
-    default="default",
-    help="Agent ID (defaults to 'default')",
+    default=None,
+    help="Agent ID. Defaults to the active agent in config.",
 )
-def reload_config_cmd(agent_id: str) -> None:
+def reload_config_cmd(agent_id: Optional[str]) -> None:
     """Reload config (re-read from file)."""
+    agent_id = resolve_agent_id(agent_id)
     ctx = _context(agent_id)
     click.echo(f"Agent: {agent_id}\n")
     click.echo(run_daemon_reload_config(ctx))
@@ -92,11 +97,12 @@ def reload_config_cmd(agent_id: str) -> None:
 @daemon_group.command("version")
 @click.option(
     "--agent-id",
-    default="default",
-    help="Agent ID (defaults to 'default')",
+    default=None,
+    help="Agent ID. Defaults to the active agent in config.",
 )
-def version_cmd(agent_id: str) -> None:
+def version_cmd(agent_id: Optional[str]) -> None:
     """Show version and paths."""
+    agent_id = resolve_agent_id(agent_id)
     ctx = _context(agent_id)
     click.echo(f"Agent: {agent_id}\n")
     click.echo(run_daemon_version(ctx))

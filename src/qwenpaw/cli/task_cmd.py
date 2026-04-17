@@ -9,9 +9,11 @@ import tempfile
 import time
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator
+from typing import Iterator, Optional
 
 import click
+
+from .utils import resolve_agent_id
 
 logger = logging.getLogger(__name__)
 
@@ -218,9 +220,9 @@ async def _run_task(
 )
 @click.option(
     "--agent-id",
-    default="default",
-    show_default=True,
-    help="Agent ID to use.",
+    default=None,
+    show_default=False,
+    help="Agent ID to use. Defaults to the active agent in config.",
 )
 def task_cmd(
     instruction: str,
@@ -230,9 +232,10 @@ def task_cmd(
     no_guard: bool,
     skills_dir: str | None,
     output_dir: str | None,
-    agent_id: str,
+    agent_id: Optional[str],
 ) -> None:
     """Run a single task instruction headlessly (no web server)."""
+    agent_id = resolve_agent_id(agent_id)
     from ..config.config import load_agent_config
     from ..providers.models import ModelSlotConfig
     from ..utils.logging import setup_logger
